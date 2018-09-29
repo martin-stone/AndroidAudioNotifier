@@ -1,4 +1,4 @@
-package com.rarepebble.audionotifier.androidaudionotifier
+package com.rarepebble.audionotifier
 
 import org.junit.Test
 
