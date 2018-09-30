@@ -9,8 +9,8 @@ import android.media.MediaRecorder
 import android.os.IBinder
 
 private const val sampleRate = 44100
-private const val bufferSeconds = 1
-private const val bufferSamples = sampleRate * bufferSeconds
+private const val bufferSamples = 32768
+private val fft = FFT(bufferSamples)
 
 class RecorderService : Service() {
 
@@ -24,11 +24,6 @@ class RecorderService : Service() {
         startForeground(1, Notification())
         startRecording()
         return super.onStartCommand(intent, flags, startId)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        log("destroyed")
     }
 
 }
@@ -63,10 +58,60 @@ private val listener = object : AudioRecord.OnRecordPositionUpdateListener {
 
     override fun onPeriodicNotification(recorder: AudioRecord) {
         val numRead = recorder.read(buffer, 0, bufferSamples)
-        val rms = Math.sqrt(buffer.sumByDouble{(it * it).toDouble()})
-//        val numRead = recorder.read(byteBuffer, 0, bufferSamples*2)
-//        file.appendBytes(byteBuffer)
-        log("period: numRead $numRead, $rms")
+        val f = fundamentalFreq(buffer)
+        log("freq: $f")
     }
-
 }
+
+private val real = DoubleArray(bufferSamples)
+private val imag = DoubleArray(bufferSamples)
+
+
+private fun fundamentalFreq(buffer: ShortArray): Double {
+    buffer.forEachIndexed { i, v -> real[i] = v.toDouble()}
+    imag.fill(0.0)
+    fft.fft(real, imag)
+    val peakIndex = (0..bufferSamples/2).maxBy { i ->
+        val re = real[i]
+        val im = imag[i]
+        re*re + im*im
+    }!!
+    return peakIndex.toDouble() * sampleRate.toDouble() / bufferSamples
+}
+
+//private fun fundamentalFreq(buffer: ShortArray): Double {
+//    buffer.forEachIndexed { i, v -> real[i] = v.toDouble()}
+//    imag.fill(0.0)
+//    // autocorrelate WRONG: NEED TO PAD https://stackoverflow.com/a/3950398
+//    fft.fft(real, imag)
+//    for (i in 0..bufferSamples-1) {
+//        // multiply by complex conjugage
+//        val re = real[i]
+//        val im = imag[i]
+//        real[i] = re*re + im*im
+//        imag[i] = 0.0
+//    }
+//    fft.ifft(real, imag)
+//
+//    // Find peak periodicity (skip dc)
+//    val peakIndex = (1..bufferSamples-1).maxBy { i ->
+//        val re = real[i]
+//        val im = imag[i]
+//        re*re + im*im
+//    }!!
+//    return sampleRate.toDouble() / peakIndex
+//}
+
+
+//private fun fundamentalFreq(buffer: ShortArray): Double {
+//    // Autocorrelate, find fundamental.
+//    val (peakIndex, peakValue) = buffer.withIndex().maxBy { offset ->
+//        val offsetValue = offset.value.toDouble()
+//        if (offset.index == 0)
+//            Double.MIN_VALUE // ignore DC and avoid / by 0
+//        else
+//            buffer.sumByDouble { it.toDouble() * offsetValue }
+//    }!!
+//    log("val $peakIndex, $peakValue")
+//    return sampleRate.toDouble() / peakIndex
+//}
