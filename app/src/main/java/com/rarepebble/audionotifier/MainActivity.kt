@@ -10,6 +10,6 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        startService(Intent().setClass(this, RecorderService::class.java))
+        startService(Intent().setClass(this, DetectorService::class.java))
     }
 }

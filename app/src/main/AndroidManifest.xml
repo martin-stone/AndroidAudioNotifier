@@ -22,7 +22,7 @@
         </activity>
 
         <service
-            android:name=".RecorderService"
+            android:name=".DetectorService"
             android:enabled="true"
             android:exported="false"></service>
     </application>
