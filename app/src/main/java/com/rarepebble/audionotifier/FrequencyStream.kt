@@ -11,7 +11,7 @@ private val fft = FFT(bufferSamples)
 private val real = DoubleArray(bufferSamples)
 private val imag = DoubleArray(bufferSamples)
 
-internal fun startDetectingFrequencies(onFrequency: (Double) -> Unit ) {
+internal fun startDetectingFrequencies(onFrequency: (Double) -> Unit ): AudioRecord {
     val bytesPerFrame = 2
     val encoding = AudioFormat.ENCODING_PCM_16BIT
     val minBuffBytes = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_MONO, encoding)
@@ -30,6 +30,7 @@ internal fun startDetectingFrequencies(onFrequency: (Double) -> Unit ) {
     recorder.setPositionNotificationPeriod(bufferSamples)
     recorder.setRecordPositionUpdateListener(Listener(onFrequency))
     recorder.startRecording()
+    return recorder
 }
 
 private class Listener(private val onFrequency: (Double) -> Unit): AudioRecord.OnRecordPositionUpdateListener {

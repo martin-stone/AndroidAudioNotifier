@@ -1,6 +1,5 @@
 package com.rarepebble.audionotifier
 
-import android.util.Log
 import java.util.*
 import javax.mail.*
 import javax.mail.internet.InternetAddress
@@ -11,18 +10,19 @@ import kotlin.concurrent.thread
 internal fun sendEmailAsync(
         smtpHost: String, port: String,
         username: String, password: String,
-        from: String, to: String, subject: String, text: String) {
+        from: String, to: String, subject: String, text: String,
+        log: (String) -> Unit) {
 
     thread(start = true) {
         try {
-            Log.i("AudioNotifier", "Sending message...")
+            log("Sending message...")
             sendEmail(
                     smtpHost, port,
                     username, password,
                     from, to, subject, text)
-            Log.i("AudioNotifier", "Message sent")
+            log("Message sent")
         } catch (e: Throwable) {
-            Log.e("AudioNotifier", "Send failed", e)
+            log("SEND FAILED\n${e}")
         }
     }
 }
@@ -38,7 +38,7 @@ internal fun sendEmail(
     props.put("mail.smtp.host", smtpHost)
     props.put("mail.smtp.port", port)
     props.put("mail.smtp.connectiontimeout", "60000")
-    props.put("mail.smtp.timeout", "60000");
+    props.put("mail.smtp.timeout", "60000")
 
     val session = Session.getInstance(
             props,

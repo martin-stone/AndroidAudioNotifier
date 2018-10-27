@@ -2,6 +2,8 @@ package com.rarepebble.audionotifier
 
 internal class AlarmDetector(
         private val onDetected: () -> Unit,
+        private val log: (String) -> Unit,
+        private val showStatus: (String) -> Unit,
         private val numHistory: Int = 10,
         private val matchCountThreshold: Int = 2,
         private val beeperFreq: Double = 4000.0, // Hz
@@ -24,9 +26,15 @@ internal class AlarmDetector(
         val notifyAllowed = System.currentTimeMillis() - lastNotifyTime > debouncePeriodMillisec
 
         if (detected && notifyAllowed) {
+            log("Detected. Notifying...")
             lastNotifyTime = System.currentTimeMillis()
             onDetected()
         }
+        showStatus(historyString())
+    }
+
+    private fun historyString(): String {
+        return recent.joinToString("  ", transform = {d -> Math.round(d).toInt().toString()})
     }
 
 }
