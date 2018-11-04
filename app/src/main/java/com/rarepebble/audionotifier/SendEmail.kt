@@ -1,5 +1,6 @@
 package com.rarepebble.audionotifier
 
+import java.lang.Thread.sleep
 import java.util.*
 import javax.mail.*
 import javax.mail.internet.InternetAddress
@@ -14,15 +15,18 @@ internal fun sendEmailAsync(
         log: (String) -> Unit) {
 
     thread(start = true) {
-        try {
-            log("Sending message...")
-            sendEmail(
-                    smtpHost, port,
-                    username, password,
-                    from, to, subject, text)
-            log("Message sent")
-        } catch (e: Throwable) {
-            log("SEND FAILED\n${e}")
+        retry(log) {
+            try {
+                log("Sending message...")
+                sendEmail(
+                        smtpHost, port,
+                        username, password,
+                        from, to, subject, text)
+                log("Message sent")
+            } catch (e: Throwable) {
+                log("SEND FAILED\n${e}")
+                throw e
+            }
         }
     }
 }
@@ -52,12 +56,27 @@ internal fun sendEmail(
     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to))
     message.setSubject(subject)
     message.setText(text, "utf8")
-
-//        val multipart = MimeMultipart()
-//
-//        val messageBodyPart = MimeBodyPart()
-//
-//        message.setContent(multipart)
-
     Transport.send(message)
+}
+
+fun retry(
+        log: (String) -> Unit,
+        initialDelay: Long = 60 * 1000,
+        maxDelay: Long = 10 * 60 * 1000,
+        factor: Long = 2,
+        block: () -> Unit) {
+    var currentDelay = initialDelay
+    while (true) {
+        try {
+            return block()
+        } catch (e: Throwable) {
+            sleep(currentDelay)
+            currentDelay *= factor
+            if (currentDelay > maxDelay) {
+                return
+            } else {
+                log("Retrying...")
+            }
+        }
+    }
 }
