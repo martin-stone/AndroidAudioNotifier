@@ -12,11 +12,17 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:layout_weight="0"/>
-    <TextView
-        android:scrollbars="vertical"
-        android:id="@+id/log"
+
+    <ScrollView
+        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </ScrollView>
 
 </LinearLayout>

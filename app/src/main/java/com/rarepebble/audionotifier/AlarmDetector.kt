@@ -4,7 +4,7 @@ internal class AlarmDetector(
         private val onDetected: () -> Unit,
         private val log: (String) -> Unit,
         private val showStatus: (String) -> Unit,
-        private val numHistory: Int = 10,
+        private val numHistory: Int = 8,
         private val matchCountThreshold: Int = 2,
         private val beeperFreq: Double = 4000.0, // Hz
         private val freqTolerance: Double = 10.0, // Hz (XXX really depends on sample rate & fft size)
