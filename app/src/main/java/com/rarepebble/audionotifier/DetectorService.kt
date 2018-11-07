@@ -9,13 +9,18 @@ import android.os.Binder
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
+import java.text.DateFormat
+import java.util.*
+
 
 class DetectorService : Service() {
 
+    private val logLines = mutableListOf<String>()
     private lateinit var wakeLock: PowerManager.WakeLock
     private lateinit var recorder: AudioRecord // Must hold ref to avoid GC stopping recording.
-    private var onStatus = {s:String -> defaultLog("status: ${s}")}
-    private var onLog = {s:String -> defaultLog(s)}
+    private var onStatus = {s:String -> defaultLog("status: ${s}", logLines)}
+    private var onLog = {s:String, logLines: List<String> -> defaultLog(s, logLines)}
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(1, Notification())
@@ -45,7 +50,17 @@ class DetectorService : Service() {
         super.onDestroy()
     }
 
-    fun log(s: String) = onLog(s)
+    fun log(s: String) {
+        val time = DateFormat.getDateTimeInstance().format(Date())
+        synchronized(this) {
+            logLines.add("${time} ${s}")
+            val maxLogLines = 500
+            if (logLines.size > maxLogLines) {
+                logLines.removeAt(0)
+            }
+            onLog(s, logLines)
+        }
+    }
 
     fun showStatus(s: String) = onStatus(s)
 
@@ -59,9 +74,10 @@ class DetectorService : Service() {
         )
     }
 
-    fun setCallbacks(onStatus: (String) -> Unit, onLog: (String) -> Unit) {
+    fun setCallbacks(onStatus: (String) -> Unit, onLog: (String, List<String>) -> Unit) {
         this.onStatus = onStatus
         this.onLog = onLog
+        onLog("", logLines)
     }
 }
 
@@ -69,6 +85,6 @@ class DetectorService : Service() {
 class DetectorBinder(val service: DetectorService) : Binder()
 
 
-private fun defaultLog(s: String) {
+private fun defaultLog(s: String, logLines: List<String>) {
     Log.i("AndroidAudioNotifier", s)
 }
