@@ -48,11 +48,32 @@ private fun fundamentalFreq(buffer: ShortArray): Double {
     buffer.forEachIndexed { i, v -> real[i] = v.toDouble()}
     imag.fill(0.0)
     fft.fft(real, imag)
-    val peakIndex = (0..bufferSamples/2).maxBy { i ->
+
+    val peakIndex = findPeak(real, imag)
+
+// more alloctions:
+//    val peakIndex = (0..bufferSamples/2).maxBy { i ->
+//        val re = real[i]
+//        val im = imag[i]
+//        re*re + im*im
+//    }!!
+
+    return peakIndex.toDouble() * sampleRate.toDouble() / bufferSamples
+}
+
+fun findPeak(real: DoubleArray, imag: DoubleArray): Int {
+    var max = 0.0
+    var peakIndex = 0;
+    for (i in 0..bufferSamples/2) {
         val re = real[i]
         val im = imag[i]
-        re*re + im*im
-    }!!
-    return peakIndex.toDouble() * sampleRate.toDouble() / bufferSamples
+        val mag = re*re + im*im
+        if (mag > max) {
+            max = mag
+            peakIndex = i;
+        }
+    }
+    return peakIndex
+
 }
 
