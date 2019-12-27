@@ -31,7 +31,7 @@ class DetectorService : Service() {
         super.onCreate()
         log("Creating.")
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AndroidAudioNotifier").apply {
+            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AndroidAudioNotifier:WakeLock").apply {
                 acquire()
                 log("Wake lock aquired.")
             }
