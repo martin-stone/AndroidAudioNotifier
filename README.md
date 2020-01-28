@@ -24,4 +24,3 @@ Memory allocations have been minimised and it can run for a very long time witho
 however sometimes it does stop working and the phone needs a restart. 
 The app is tagged as a homescreen app, so you can configure it to start automatically on boot 
 and display the log continuously.
-
